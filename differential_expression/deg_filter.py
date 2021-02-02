@@ -243,6 +243,8 @@ for day in union:
         print('{}; {}; all genes found:{}, unique list: {}; found in two patients: {}'.format(day, trend, len(union[day][trend]), len(unique), len(intersection[day][trend])))
 
 # 3. store
+entire_DET_set = []
+
 ## 3.1. store filtered DEGs per donor and condition
 for donor in DEGs:
     for day in DEGs[donor]:
@@ -257,6 +259,8 @@ for donor in DEGs:
 
                     if content[0] in intersection[day][trend]:
                         content.append('yes')
+                        if content[0] not in entire_DET_set:
+                            entire_DET_set.append(content[0])
                     else:
                         content.append('no')
 
@@ -272,3 +276,10 @@ for donor in DEGs:
                         line=line+sub+'\t'
                     line=line+'\n'
                     f.write(line)
+
+## 3.2. store entire DETs set
+print('about to store a DET set of {} genes'.format(len(entire_DET_set)))
+storage = filtered_folder + 'entire_DET_set.txt'
+with open(storage, 'w') as f:
+    for element in entire_DET_set:
+        f.write('{}\n'.format(element))
