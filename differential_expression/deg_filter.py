@@ -1,4 +1,10 @@
-import sys, os, numpy
+###
+### This script generates a file with only DEGs, for both TPM and z-score values.
+###
+
+import sys, os, numpy, pandas, seaborn
+import matplotlib
+matplotlib.rcParams.update({'font.size':20, 'font.family':'FreeSans', 'xtick.labelsize':20, 'ytick.labelsize':20, 'figure.figsize':(8, 4)})
 
 def metadata_reader():
 
@@ -229,7 +235,7 @@ for donor in DEGs:
                 DEGs[donor][day][trend] = container
 
 
-### 2.4. learn genes responding in at least two patients
+# filter 4: learn genes responding in at least two patients
 intersection = {}
 for day in union:
     intersection[day] = {}
@@ -242,16 +248,18 @@ for day in union:
                 intersection[day][trend].append(element)
         print('{}; {}; all genes found:{}, unique list: {}; found in two patients: {}'.format(day, trend, len(union[day][trend]), len(unique), len(intersection[day][trend])))
 
+#
 # 3. store
-entire_DET_set = []
+#
+entire_DEG_set = []
 
-## 3.1. store filtered DEGs per donor and condition
+# 3.1. store filtered DEGs per donor and condition
 for donor in DEGs:
     for day in DEGs[donor]:
-
         for trend in DEGs[donor][day]:
 
             storage = filtered_folder + '{}_{}_{}_filtered.tsv'.format(donor, day, trend)
+
             with open(storage, 'w') as f:
                 f.write('{}_{}_{}\n'.format(donor, day, trend))
                 f.write('ENSEMBL\tGene name\tBiotype\tDescription\tBase mean\tlog2FC\tP value\tAdjusted P-value\tReference expression (TPM)\tSample expression (TPM)\tDiscrete abs(log2FC)\tIn at least two patients\n')
@@ -259,8 +267,8 @@ for donor in DEGs:
 
                     if content[0] in intersection[day][trend]:
                         content.append('yes')
-                        if content[0] not in entire_DET_set:
-                            entire_DET_set.append(content[0])
+                        if content[0] not in entire_DEG_set:
+                            entire_DEG_set.append(content[0])
                     else:
                         content.append('no')
 
@@ -277,9 +285,91 @@ for donor in DEGs:
                     line=line+'\n'
                     f.write(line)
 
-## 3.2. store entire DETs set
-print('about to store a DET set of {} genes'.format(len(entire_DET_set)))
-storage = filtered_folder + 'entire_DET_set.txt'
+## 3.2. store names of entire DEG names
+print('about to store a DET set of {} genes'.format(len(entire_DEG_set)))
+storage = filtered_folder + 'entire_DEG_set.txt'
 with open(storage, 'w') as f:
-    for element in entire_DET_set:
+    for element in entire_DEG_set:
         f.write('{}\n'.format(element))
+
+#
+# 4. visualization
+#
+
+# 4.0. build data variables
+expression_trajectories = {}
+for gene in entire_DEG_set:
+    time_trajectory = []
+    for day in days:
+        expression_across_donors = []
+        for donor in donors:
+
+            # retrieve sample labels
+            sample_labels = []
+            for sample in sample_IDs:
+                if metadata[sample] == (donor, day):
+                    sample_labels.append(sample)
+
+            # retrieve expression
+            exp = [expression[label][gene] for label in sample_labels]
+            if len(exp) > 0:
+                average_expression = numpy.mean(exp)
+                expression_across_donors.append(average_expression)
+
+        # compute median across patients
+        median_expression = numpy.median(expression_across_donors)
+
+        # round values, useful for very low values
+        round_value = numpy.around(median_expression)
+
+        # add round value to trajectory
+        time_trajectory.append(round_value)
+
+    # add time trajectory to gene label
+    expression_trajectories[gene] = time_trajectory
+
+# expression in tpm
+df_tpm = pandas.DataFrame(expression_trajectories).transpose()
+df_tpm.columns = days
+print(df_tpm.head())
+
+# log2 expression + 1
+df_log2 = numpy.log2(df_tpm + 1)
+print(df_log2.head())
+
+# scaled expression to zero mean and unit variance
+mean = df_log2.mean(axis=1)
+sd = df_log2.std(axis=1)
+df_scaled = df_log2.subtract(mean, axis=0).div(sd, axis=0)
+print(df_scaled.head())
+
+# 4.1. heatmap of TPM expression
+g = seaborn.clustermap(df_tpm, cmap='viridis', col_cluster=False, method='ward', metric='euclidean', yticklabels = 40, cbar_kws={'label':'TPM'})
+
+matplotlib.pyplot.tight_layout()
+matplotlib.pyplot.savefig('{}/heatmap_tpm.pdf'.format(filtered_folder))
+matplotlib.pyplot.clf()
+
+# 4.2. heatmap of z-score expression
+g = seaborn.clustermap(df_log2, cmap='viridis', col_cluster=False, method='ward', metric='euclidean', yticklabels = 40, cbar_kws={'label':'log2 TPM'})
+
+matplotlib.pyplot.tight_layout()
+matplotlib.pyplot.savefig('{}/heatmap_log2.pdf'.format(filtered_folder))
+matplotlib.pyplot.clf()
+
+# 4.3. heatmap of scaled expression to zero-mean and unit-variance
+for clustering_method in ['single', 'complete', 'average', 'weighted', 'centroid', 'median', 'ward']:
+
+    g = seaborn.clustermap(df_scaled, cmap='bwr', col_cluster=False, method=clustering_method, metric='euclidean', yticklabels = 0, cbar_kws={'label':'sccaled'})
+
+    matplotlib.pyplot.tight_layout()
+    matplotlib.pyplot.savefig('{}/heatmap_scaled_{}.pdf'.format(filtered_folder, clustering_method))
+    matplotlib.pyplot.clf()
+
+
+# 4.3. PCA of samples
+import sklearn
+from sklearn.decomposition import PCA
+pca = PCA(n_components=2)
+PCs = pca.fit_transform(df_scaled.transpose().values)
+print(PCs, len(PCs))
