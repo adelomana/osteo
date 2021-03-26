@@ -78,7 +78,7 @@ def read_DEGs(DEGs, donor, day, trend):
 # paths
 project_dir = '/home/adrian/projects/osteo/'
 DESeq2_folder = project_dir + 'results/DETs_DESeq2/'
-metadata_file = project_dir +'metadata/MSC_Sample list.csv'
+metadata_file = '/home/adrian/gd15/hi/research/osteo/metadata/MSC_Sample list.csv'
 expression_file = project_dir + 'results/tpm/DESeq2_TPM_values.tsv'
 filtered_folder = project_dir + 'results/DETs_filtered/'
 
