@@ -1,17 +1,17 @@
 # install from bioconductor
-# if (!requireNamespace("BiocManager", quietly = TRUE))
-#   install.packages("BiocManager")
-# BiocManager::install("dorothea")
+if (!requireNamespace("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+BiocManager::install("dorothea")
 # 
-# # install the development version from GitHub
-# # install.packages("devtools")
-# devtools::install_github("saezlab/dorothea")
+# install the development version from GitHub
+#install.packages("devtools")
+#devtools::install_github("saezlab/dorothea")
 
 library(dorothea)
 
 # 0. user-defined variables
-database_output_dir = '/home/adrian/projects/osteo/data/dorothea/'
-regulons_output_dir = '/home/adrian/projects/osteo/data/dorothea/regulons/'
+database_output_dir = '/Users/adrian/gd15/hi/research/osteo/data/dorothea/'
+regulons_output_dir = '/Users/adrian/gd15/hi/research/osteo/data/dorothea/regulons/'
 
 # 1. write all interactions
 df = dorothea_hs
