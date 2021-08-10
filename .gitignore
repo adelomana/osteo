@@ -2,9 +2,16 @@
 gene_expression_analysis/.ipynb_checkpoints/amigo_formatter-checkpoint.ipynb
 gene_expression_analysis/.ipynb_checkpoints/figure one-checkpoint.ipynb
 regulatory_influence_inference/.ipynb_checkpoints/expression_formatter-checkpoint.ipynb
+<<<<<<< Updated upstream
 regulatory_influence_inference/.ipynb_checkpoints/inference-checkpoint.ipynb
 regulatory_influence_inference/.ipynb_checkpoints/inference-Copy1-checkpoint.ipynb
 regulatory_influence_inference/.ipynb_checkpoints/inference_first-checkpoint.ipynb
 regulatory_influence_inference/log.txt
 regulatory_influence_inference/older/.ipynb_checkpoints/heatmap_builder_iterative_search_GOOD_expression_handler-checkpoint.ipynb
 regulatory_influence_inference/older/.ipynb_checkpoints/inference_network-checkpoint.ipynb
+=======
+
+regulatory_influence_inference/.ipynb_checkpoints/
+
+regulatory_influence_inference/log.txt
+>>>>>>> Stashed changes
